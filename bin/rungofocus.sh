@@ -11,7 +11,7 @@
 #$ -o  $HOME/project/$JOB_NAME/logs/$JOB_NAME.o$TASK_ID
 #$ -e  $HOME/project/$JOB_NAME/logs/$JOB_NAME.e$TASK_ID
 
-COMMON=~/git/elzar-template/lib/common.sh 
+COMMON=~/git/elzar-example/lib/common.sh 
 CMD=~/git/gofocus/gofocus/pytorch_goterm_pred.py 
 NUMARGS=4
 
@@ -55,7 +55,5 @@ fi
 echo "Job command Return code was $RET"
 
 postlude
-
-
 
 exit $RET

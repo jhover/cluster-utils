@@ -1,7 +1,4 @@
 
-
-
-
 prelude() {
 	echo "*********START*************************"
 	date
@@ -23,7 +20,7 @@ nodeinfo() {
 	echo "Memory MB: $MBMEM"
 }
 
-taskid(){
+gettaskid(){
 	if [ -z ${SGE_TASK_ID} ]; then 
 		SGE_TASK_ID=1 
 	fi
@@ -33,7 +30,5 @@ taskid(){
 postlude() {
 	date
 	echo "*********END***************************"
-
-
 }
 

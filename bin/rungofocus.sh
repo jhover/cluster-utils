@@ -55,5 +55,4 @@ fi
 echo "Job command Return code was $RET"
 
 postlude
-
 exit $RET

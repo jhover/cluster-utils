@@ -1,5 +1,4 @@
 #!/bin/bash 
-#
 #   Usage: rungofocus.sh <setup> <basefile> <inputdir> <outputdir> 
 # job name
 #$ -N gofocus
@@ -11,7 +10,6 @@
 #$ -l gpu=1 
 #$ -o  $HOME/project/$JOB_NAME/logs/$JOB_NAME.o$TASK_ID
 #$ -e  $HOME/project/$JOB_NAME/logs/$JOB_NAME.e$TASK_ID
-#
 
 COMMON=~/git/elzar-template/lib/common.sh 
 CMD=~/git/gofocus/gofocus/pytorch_goterm_pred.py 
@@ -27,17 +25,18 @@ fi
 # Source common functions. 
 . $COMMON
 
+# Normalize args.
 setup=$1       
 basefile=$2
 inputdir=$3
 outputdir=$4
 
 echo "Running setup from $1"
-. $1
+. $setup
 
 # $SGE_TASK_ID
-TASKID=gettaskid
-filebase=`head -$SGE_TASK_ID $2 | tail -1 `
+taskid=gettaskid
+filebase=`head -$SGE_TASK_ID $taskid | tail -1 `
 echo "filebase is $filebase"
 
 infile="$inputdir/${filebase}_hiprio.tfa "
@@ -45,7 +44,6 @@ outfile="$outputdir/${filebase}_hiprio.predout"
 echo "$infile -> $outfile"
 
 nodeinfo
-
 prelude
 
 time $CMD -v $infile $outfile

@@ -18,7 +18,7 @@ def get_history(days=1, user=get_username()):
     result = subprocess.check_output( cmd, shell=True, text=True )
     lines = result.split('\n')
     info = parse_output(lines)
-    print(f"got {len(info)} items")
+    print(f"got {len(info)} jobs")
     return info
 
 def parse_output(lines):
@@ -32,14 +32,35 @@ def parse_output(lines):
         else:
             key = line[0:13].strip()
             value = line[13:].strip()
-            print(f"{key} = {value}")
+            #print(f"{key} = {value}")
             if key == "jobnumber":
                 current['jobnumber'] = value
+            if key == "jobname":
+                current['jobname'] = value
+            
             elif key == "exit_status":
                 current["exit_status"] = value
-    
+            if key == "slots":
+                current['slots'] = value
+            elif key == "wallclock":
+                current["wallclock"] = value
+            elif key == "maxvmem":
+                current["maxvmem"] = value
     return lod    
 
+def printjob(jobdict):
+    fields = ["jobnumber", "jobname", "wallclock", "slots", "maxvmem", "exit_status"  ]
+    s=""
+    for f in field:
+       s += f" {f} " 
+    #s += "\n"
+    return s
+
 if __name__ == '__main__':
-    lines = get_history()
+    joblist = get_history()
+    for job in joblist:
+        printjob(job)
+    
+
+    
     

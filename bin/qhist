@@ -36,6 +36,14 @@ def parse_output(lines):
                 current["ru_wallclock"] = value
             elif key == "maxvmem":
                 current["maxvmem"] = value
+            elif key == "pe_taskid":
+                current["pe_taskid"] = value
+            elif key == "submit_cmd":
+                current["submit_cmd"] = value
+    
+    
+    
+    
     return lod    
 
 
@@ -52,7 +60,7 @@ def get_history(days=1, user=get_username()):
 
 def printjob(jobdict):
     fw=9
-    fields = ["jobnumber", "jobname", "ru_wallclock", "slots", "maxvmem", "exit_status"  ]
+    fields = ["jobnumber", "jobname", "pe_taskid", "ru_wallclock", "slots", "maxvmem", "exit_status","submit_cmd"  ]
     s=""
     for f in fields:
        value = jobdict[f]

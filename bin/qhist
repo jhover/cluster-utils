@@ -51,7 +51,7 @@ def printjob(jobdict):
     fields = ["jobnumber", "jobname", "wallclock", "slots", "maxvmem", "exit_status"  ]
     s=""
     for f in fields:
-       s += f" {f} " 
+       s += f" {jobdict[f]} " 
     #s += "\n"
     print(s)
 

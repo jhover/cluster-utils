@@ -56,7 +56,7 @@ def printjob(jobdict):
     s=""
     for f in fields:
        s += f"{jobdict[f]}" 
-       pad = fw - len(f)
+       pad = ' ' * (fw - len(f))
        s += pad
     #s += "\n"
     print(s)

@@ -1,0 +1,22 @@
+#!/usr/bin/env python
+#
+# qacct -j -d 1 -o hover
+
+import os
+import pwd
+import subprocess
+import sys
+
+print("qhist")
+#  jobnum  jobname  slots  exit_status  wallclock  maxvmem
+
+def get_username():
+    return pwd.getpwuid( os.getuid() )[ 0 ]
+
+def get_history(days=1, user=get_username()):
+    result = subprocess.run(
+        ["qacct", "-j", "-d", "1", "-o hover"], capture_output=True, text=True
+        )
+    print("stdout:", result.stdout)
+    print("stderr:", result.stderr)
+

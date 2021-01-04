@@ -53,7 +53,7 @@ def printjob(jobdict):
     for f in fields:
        s += f" {f} " 
     #s += "\n"
-    return s
+    print(s)
 
 if __name__ == '__main__':
     joblist = get_history()

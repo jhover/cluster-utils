@@ -28,7 +28,7 @@ def parse_output(lines):
         if line.startswith("======="):
             if current is not None:
                 lod.append(current)
-                current = {}
+            current = {}
         else:
             key = line[0:13].strip()
             value = line[13:].strip()

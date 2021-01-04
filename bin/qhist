@@ -41,8 +41,8 @@ def parse_output(lines):
                 current["exit_status"] = value
             if key == "slots":
                 current['slots'] = value
-            elif key == "wallclock":
-                current["wallclock"] = value
+            elif key == "ru_wallclock":
+                current["ru_wallclock"] = value
             elif key == "maxvmem":
                 current["maxvmem"] = value
     return lod    

@@ -51,10 +51,13 @@ def get_history(days=1, user=get_username()):
 
 
 def printjob(jobdict):
+    fw=9
     fields = ["jobnumber", "jobname", "ru_wallclock", "slots", "maxvmem", "exit_status"  ]
     s=""
     for f in fields:
-       s += f" {jobdict[f]}\t" 
+       s += f"{jobdict[f]}" 
+       pad = fw - len(f)
+       s += pad
     #s += "\n"
     print(s)
 

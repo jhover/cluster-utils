@@ -46,6 +46,7 @@ def get_history(days=1, user=get_username()):
     joblist = parse_output(lines)
     #print(f"got {len(info)} jobs")
     joblist.sort(key=lambda x: int(x['jobnumber']))
+    joblist.reverse()
     return joblist
 
 

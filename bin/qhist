@@ -1,14 +1,13 @@
 #!/usr/bin/env python
 #
 # qacct -j -d 1 -o hover
+#  jobnum  jobname  wallclock  slots   maxvmem exit_status
+
 
 import os
 import pwd
 import subprocess
 import sys
-
-print("qhist")
-#  jobnum  jobname  slots  exit_status  wallclock  maxvmem
 
 def get_username():
     return pwd.getpwuid( os.getuid() )[ 0 ]
@@ -51,7 +50,7 @@ def parse_output(lines):
 def printjob(jobdict):
     fields = ["jobnumber", "jobname", "wallclock", "slots", "maxvmem", "exit_status"  ]
     s=""
-    for f in field:
+    for f in fields:
        s += f" {f} " 
     #s += "\n"
     return s

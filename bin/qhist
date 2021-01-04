@@ -55,10 +55,10 @@ def printjob(jobdict):
     fields = ["jobnumber", "jobname", "ru_wallclock", "slots", "maxvmem", "exit_status"  ]
     s=""
     for f in fields:
-       s += f"{jobdict[f]}" 
-       pad = ' ' * (fw - len(f))
+       value = jobdict[f]
+       s += f"{value}" 
+       pad = ' ' * (fw - len(value))
        s += pad
-    #s += "\n"
     print(s)
 
 if __name__ == '__main__':

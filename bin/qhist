@@ -12,14 +12,6 @@ import sys
 def get_username():
     return pwd.getpwuid( os.getuid() )[ 0 ]
 
-def get_history(days=1, user=get_username()):
-    cmd = f"qacct -j -d  1 -o {user}"
-    result = subprocess.check_output( cmd, shell=True, text=True )
-    lines = result.split('\n')
-    info = parse_output(lines)
-    print(f"got {len(info)} jobs")
-    return info
-
 def parse_output(lines):
     lod = []
     current = None
@@ -36,7 +28,6 @@ def parse_output(lines):
                 current['jobnumber'] = value
             if key == "jobname":
                 current['jobname'] = value
-            
             elif key == "exit_status":
                 current["exit_status"] = value
             if key == "slots":
@@ -46,6 +37,17 @@ def parse_output(lines):
             elif key == "maxvmem":
                 current["maxvmem"] = value
     return lod    
+
+
+def get_history(days=1, user=get_username()):
+    cmd = f"qacct -j -d  1 -o {user}"
+    result = subprocess.check_output( cmd, shell=True, text=True )
+    lines = result.split('\n')
+    joblist = parse_output(lines)
+    #print(f"got {len(info)} jobs")
+    joblist.sort(key=lambda x: int(x['jobnumber']))
+    return joblist
+
 
 def printjob(jobdict):
     fields = ["jobnumber", "jobname", "ru_wallclock", "slots", "maxvmem", "exit_status"  ]

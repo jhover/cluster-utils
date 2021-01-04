@@ -48,7 +48,7 @@ def parse_output(lines):
     return lod    
 
 def printjob(jobdict):
-    fields = ["jobnumber", "jobname", "wallclock", "slots", "maxvmem", "exit_status"  ]
+    fields = ["jobnumber", "jobname", "ru_wallclock", "slots", "maxvmem", "exit_status"  ]
     s=""
     for f in fields:
        s += f" {jobdict[f]} " 

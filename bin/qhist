@@ -14,11 +14,16 @@ def get_username():
     return pwd.getpwuid( os.getuid() )[ 0 ]
 
 def get_history(days=1, user=get_username()):
-    result = subprocess.run(
-        ["qacct", "-j", "-d", "1", "-o hover"], capture_output=True, text=True
-        )
-    print("stdout:", result.stdout)
-    print("stderr:", result.stderr)
+    cmd = f"qacct -j -d  1 -o {user}"
+    result = subprocess.check_output( cmd, capture_output=True, text=True )
+    result=str(result)
+    lines = result.split('\\n')
+    
+    #print("stdout:", result.stdout)
+    #print("stderr:", result.stderr)
+
+def parse_output(lines):
 
 if __name__ == '__main__':
-    get_history()
+    lines = get_history()
+    

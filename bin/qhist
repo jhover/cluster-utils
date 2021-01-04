@@ -20,3 +20,5 @@ def get_history(days=1, user=get_username()):
     print("stdout:", result.stdout)
     print("stderr:", result.stderr)
 
+if __name__ == '__main__':
+    get_history()

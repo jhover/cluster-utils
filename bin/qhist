@@ -67,7 +67,7 @@ def printjoblist(joblist):
                ( "start_time", 25),
                ("end_time", 25 ),
                ("wallclock", 10),
-               ( "slots", 6 ),
+               ( "slots", 4 ),
                ( "maxvmem", 10),
                ( "exit_status", 6 )
                ]

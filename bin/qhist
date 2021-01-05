@@ -72,12 +72,12 @@ def printjoblist(joblist):
         slist.append(s)
     
     out = '\n'.join(slist)
-    print(out)
+    return out
     
 
 if __name__ == '__main__':
     joblist = get_history()
-    printjoblist(joblist)
+    print(printjoblist(joblist))
     
 
     

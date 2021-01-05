@@ -77,7 +77,11 @@ def printjoblist(joblist):
 
 if __name__ == '__main__':
     joblist = get_history()
-    print(printjoblist(joblist))
+    out = printjoblist(joblist)
+    try:
+        sys.stdout.write(out)
+    except IOError as e:
+        pass
     
 
     

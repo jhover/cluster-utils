@@ -71,7 +71,7 @@ def printjoblist(joblist):
            s += pad
         slist.append(s)
     
-    out = slist.join("\n")
+    out = '\n'.join(slist)
     print(out)
     
 

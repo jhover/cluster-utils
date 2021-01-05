@@ -26,24 +26,25 @@ def parse_output(lines):
             #print(f"{key} = {value}")
             if key == "jobnumber":
                 current['jobnumber'] = value
-            if key == "jobname":
+            elif key == "jobname":
                 current['jobname'] = value
             elif key == "exit_status":
                 current["exit_status"] = value
-            if key == "slots":
+            elif key == "slots":
                 current['slots'] = value
-            elif key == "ru_wallclock":
-                current["ru_wallclock"] = value
+            elif key == "wallclock":
+                current["wallclock"] = value
+            elif key == "start_time":
+                current["start_time"] = value
+            elif key == "end_time":
+                current["end_time"] = value            
             elif key == "maxvmem":
                 current["maxvmem"] = value
             elif key == "pe_taskid":
                 current["pe_taskid"] = value
             elif key == "submit_cmd":
                 current["submit_cmd"] = value
-    
-    
-    
-    
+
     return lod    
 
 
@@ -60,7 +61,8 @@ def get_history(days=1, user=get_username()):
 
 def printjoblist(joblist):
     fw=9
-    fields = ["jobnumber", "jobname", "pe_taskid", "ru_wallclock", "slots", "maxvmem", "exit_status","submit_cmd"  ]
+#    fields = ["jobnumber", "jobname", "pe_taskid", "ru_wallclock", "slots", "maxvmem", "exit_status","submit_cmd"  ]
+    fields = ["jobnumber", "jobname", "pe_taskid", "start_time","end_time","wallclock", "slots", "maxvmem", "exit_status","submit_cmd"  ]
     slist = []    
     for jobdict in joblist:
         s=""

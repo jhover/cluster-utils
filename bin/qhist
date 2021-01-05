@@ -58,21 +58,26 @@ def get_history(days=1, user=get_username()):
     return joblist
 
 
-def printjob(jobdict):
+def printjoblist(joblist):
     fw=9
     fields = ["jobnumber", "jobname", "pe_taskid", "ru_wallclock", "slots", "maxvmem", "exit_status","submit_cmd"  ]
-    s=""
-    for f in fields:
-       value = jobdict[f]
-       s += f"{value}" 
-       pad = ' ' * (fw - len(value))
-       s += pad
-    print(s)
+    slist = []    
+    for job in joblist:
+        s=""
+        for f in fields:
+           value = jobdict[f]
+           s += f"{value}" 
+           pad = ' ' * (fw - len(value))
+           s += pad
+        slist.append(s)
+    
+    out = slist.join("\n")
+    print(out)
+    
 
 if __name__ == '__main__':
     joblist = get_history()
-    for job in joblist:
-        printjob(job)
+    printjoblist(joblist)
     
 
     

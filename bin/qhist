@@ -60,7 +60,7 @@ def get_history(days=1, user=get_username()):
 
 
 def printjoblist(joblist):
-    fw=12
+    fw=15
 #    fields = ["jobnumber", "jobname", "pe_taskid", "ru_wallclock", "slots", "maxvmem", "exit_status","submit_cmd"  ]
     fields = ["jobnumber", "jobname", "pe_taskid", "start_time","end_time","wallclock", "slots", "maxvmem", "exit_status" ]
     slist = []    

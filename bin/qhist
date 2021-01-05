@@ -62,7 +62,7 @@ def printjoblist(joblist):
     fw=9
     fields = ["jobnumber", "jobname", "pe_taskid", "ru_wallclock", "slots", "maxvmem", "exit_status","submit_cmd"  ]
     slist = []    
-    for job in joblist:
+    for jobdict in joblist:
         s=""
         for f in fields:
            value = jobdict[f]

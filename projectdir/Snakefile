@@ -1,0 +1,44 @@
+# To submit on Elzar:
+#  snakemake --jobs 6 
+#            --cluster "qsub -N example
+#            -wd ~/work/$JOB_NAME 
+#            -pe threads {threads} 
+#            -l m_mem_free={resources.mem_mb}M 
+#            -l gpu={resources.gpu} 
+#            -o  $HOME/project/$JOB_NAME/logs/$JOB_NAME.o$JOB_ID.$TASK_ID
+#            -e  $HOME/project/$JOB_NAME/logs/$JOB_NAME.e$JOB_ID.$TASK_ID "
+   
+import os
+homedir = os.path.expanduser("~/")
+
+(SAMPLES,) = glob_wildcards(homedir + "data/exampledata/{sample}_file.in")
+
+wildcard_constraints:
+   sample = '\w+'
+
+rule all:
+    input:
+        expand(homedir + "work/example/{sample}_file.in", sample=SAMPLES)
+
+rule gofocus:
+	input: 
+		homedir + "data/exampledata/{sample}_file.in"
+	output:
+		homedir + "work/example/{sample}_file.out"
+	resources:
+		gpu=1, 
+		mem_mb=5120
+	threads: 4
+	shell:
+		homedir + "git/example/my_example_program.py -v {input} {output} "
+
+rule sorted:
+	input:
+		homedir + "work/example/{sample}_file.out"
+	output:
+		homedir + "work/example/{sample}_file.sorted"
+	resources:
+		gpu=0 , mem_mb=2048
+	threads: 1
+	shell:
+		"cat {input} | sort -k 1,1 -k 3,3rn > {output} "

@@ -49,7 +49,7 @@ def parse_output(lines):
 
 
 def get_history(days=1, user=get_username()):
-    cmd = f"qacct -j -d  1 -o {user}"
+    cmd = f"qacct -j -d 1 -o {user}"
     result = subprocess.check_output( cmd, shell=True, text=True )
     lines = result.split('\n')
     joblist = parse_output(lines)
@@ -86,7 +86,7 @@ def printjoblist(joblist):
     
 
 if __name__ == '__main__':
-    joblist = get_history()
+    joblist = get_history(days=5)
     out = printjoblist(joblist)
     try:
         sys.stdout.write(out)

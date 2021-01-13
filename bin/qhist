@@ -82,6 +82,7 @@ def printjoblist(joblist):
         slist.append(s)
     
     out = '\n'.join(slist)
+    out = out + '\n'
     return out
     
 

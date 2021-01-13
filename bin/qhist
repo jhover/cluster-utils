@@ -86,7 +86,7 @@ def printjoblist(joblist):
     
 
 if __name__ == '__main__':
-    joblist = get_history(days=5)
+    joblist = get_history(days=14)
     out = printjoblist(joblist)
     try:
         sys.stdout.write(out)

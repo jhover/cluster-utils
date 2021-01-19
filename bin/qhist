@@ -51,7 +51,7 @@ def parse_output(lines):
 
 
 def get_history(days=1, user=get_username()):
-    cmd = f"qacct -j -d 1 -o {user}"
+    cmd = f"qacct -j -d {days} -o {user}"
     result = subprocess.check_output( cmd, shell=True, text=True )
     lines = result.split('\n')
     joblist = parse_output(lines)

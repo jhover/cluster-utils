@@ -4,6 +4,7 @@
 #  jobnum  jobname  wallclock  slots   maxvmem exit_status
 
 
+import argparse
 import os
 import pwd
 import subprocess
@@ -84,10 +85,31 @@ def printjoblist(joblist):
     out = '\n'.join(slist)
     out = out + '\n'
     return out
-    
+
 
 if __name__ == '__main__':
-    joblist = get_history(days=14)
+    FORMAT='%(asctime)s (UTC) [ %(levelname)s ] %(filename)s:%(lineno)d %(name)s.%(funcName)s(): %(message)s'
+    logging.basicConfig(format=FORMAT)
+    parser = argparse.ArgumentParser()
+      
+    parser.add_argument('-d', '--debug', 
+                        action="store_true", 
+                        dest='debug', 
+                        help='debug logging')
+
+    parser.add_argument('-v', '--verbose', 
+                        action="store_true", 
+                        dest='verbose', 
+                        help='verbose logging')
+
+    parser.add_argument('-D','--days', 
+                        metavar='days', 
+                        type=int, 
+                        help='days previous to query')
+   
+    args= parser.parse_args()    
+    
+    joblist = get_history(days=args.days)
     out = printjoblist(joblist)
     try:
         sys.stdout.write(out)

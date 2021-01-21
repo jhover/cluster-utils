@@ -105,7 +105,8 @@ if __name__ == '__main__':
 
     parser.add_argument('-D','--days', 
                         metavar='days', 
-                        type=int, 
+                        type=int,
+                        default=7, 
                         help='days previous to query')
    
     args= parser.parse_args()    

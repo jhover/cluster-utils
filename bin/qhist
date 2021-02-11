@@ -78,6 +78,7 @@ def printjoblist(joblist):
         s=""
         for (f, w) in fields:
            value = jobdict[f]
+           value = value[:w]  # strip it if longer than field. 
            s += f"{value}" 
            pad = ' ' * (w - len(value))
            s += pad

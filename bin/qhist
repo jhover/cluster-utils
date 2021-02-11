@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
 # qacct -j -d 1 -o hover
-#  jobnum  jobname  wallclock  slots   maxvmem exit_status
+#  jobnum  jobname  pe_taskid  start_time  end_time  wallclock  slots  maxvmem  exit_status
 
 
 import argparse
@@ -61,7 +61,7 @@ def get_history(days=1, user=get_username()):
     return joblist
 
 
-def printjoblist(joblist):
+def printjoblist(joblist, header=False):
 #    fields = ["jobnumber", "jobname", "pe_taskid", "ru_wallclock", "slots", "maxvmem", "exit_status","submit_cmd"  ]
     fields = [ ("jobnumber", 10),
                ("jobname", 25),
@@ -73,7 +73,18 @@ def printjoblist(joblist):
                ( "maxvmem", 10),
                ( "exit_status", 6 )
                ]
-    slist = []    
+    slist = []
+    if header:
+        s=""
+        for (f, w) in fields:
+           value = f
+           value = value[:(w -1)]  # strip it if longer than field. 
+           s += f"{value}" 
+           pad = ' ' * (w - len(value))
+           s += pad
+        slist.append(s)
+        hline = '-' * sum([f[1] for f in fields])
+        slist.append(hline)
     for jobdict in joblist:
         s=""
         for (f, w) in fields:
@@ -109,11 +120,16 @@ if __name__ == '__main__':
                         type=int,
                         default=7, 
                         help='days previous to query')
+    
+    parser.add_argument('-H', '--header',
+                        action='store_true',
+                        dest='header',
+                        help='print column headers before output')
    
     args= parser.parse_args()    
     
     joblist = get_history(days=args.days)
-    out = printjoblist(joblist)
+    out = printjoblist(joblist, args.header)
     try:
         sys.stdout.write(out)
     except IOError as e:

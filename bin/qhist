@@ -61,7 +61,7 @@ def get_history(days=1, user=get_username()):
     return joblist
 
 
-def printjoblist(joblist, header=False):
+def printjoblist(joblist, header=False, nlines=0):
 #    fields = ["jobnumber", "jobname", "pe_taskid", "ru_wallclock", "slots", "maxvmem", "exit_status","submit_cmd"  ]
     fields = [ ("jobnumber", 10),
                ("jobname", 25),
@@ -73,6 +73,7 @@ def printjoblist(joblist, header=False):
                ( "maxvmem", 10),
                ( "exit_status", 6 )
                ]
+    hlist = []
     slist = []
     if header:
         s=""
@@ -82,9 +83,9 @@ def printjoblist(joblist, header=False):
            s += f"{value}" 
            pad = ' ' * (w - len(value))
            s += pad
-        slist.append(s)
+        hlist.append(s)
         hline = '-' * sum([f[1] for f in fields])
-        slist.append(hline)
+        hlist.append(hline)
     for jobdict in joblist:
         s=""
         for (f, w) in fields:
@@ -94,8 +95,10 @@ def printjoblist(joblist, header=False):
            pad = ' ' * (w - len(value))
            s += pad
         slist.append(s)
+    if nlines > 0:
+        slist = slist[:nlines]
     
-    out = '\n'.join(slist)
+    out = '\n'.join(hlist + slist)
     out = out + '\n'
     return out
 
@@ -125,11 +128,16 @@ if __name__ == '__main__':
                         action='store_true',
                         dest='header',
                         help='print column headers before output')
+    
+    parser.add_argument('-n', '--nlines',
+                        type=int,
+                        default=0,
+                        help='max number of entries to display (default all)')
    
     args= parser.parse_args()    
     
     joblist = get_history(days=args.days)
-    out = printjoblist(joblist, args.header)
+    out = printjoblist(joblist, args.header, args.nlines)
     try:
         sys.stdout.write(out)
     except IOError as e:

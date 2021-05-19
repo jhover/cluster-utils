@@ -5,7 +5,7 @@
 
 
 import argparse
-import logging
+# import logging
 import os
 import pwd
 import subprocess
@@ -101,19 +101,19 @@ def printjoblist(joblist, header=False):
 
 
 if __name__ == '__main__':
-    FORMAT='%(asctime)s (UTC) [ %(levelname)s ] %(filename)s:%(lineno)d %(name)s.%(funcName)s(): %(message)s'
-    logging.basicConfig(format=FORMAT)
+    # FORMAT='%(asctime)s (UTC) [ %(levelname)s ] %(filename)s:%(lineno)d %(name)s.%(funcName)s(): %(message)s'
+    # logging.basicConfig(format=FORMAT)
     parser = argparse.ArgumentParser()
       
-    parser.add_argument('-d', '--debug', 
-                        action="store_true", 
-                        dest='debug', 
-                        help='debug logging')
+    # parser.add_argument('-d', '--debug', 
+    #                     action="store_true", 
+    #                     dest='debug', 
+    #                     help='debug logging')
 
-    parser.add_argument('-v', '--verbose', 
-                        action="store_true", 
-                        dest='verbose', 
-                        help='verbose logging')
+    # parser.add_argument('-v', '--verbose', 
+    #                     action="store_true", 
+    #                     dest='verbose', 
+    #                     help='verbose logging')
 
     parser.add_argument('-D','--days', 
                         metavar='days', 

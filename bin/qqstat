@@ -219,7 +219,7 @@ def main(usage):
         return
     else:
         print('\n'.join(records))
-        print('\n')
+        print()
 
 
 if __name__ == '__main__':

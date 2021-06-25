@@ -1,0 +1,232 @@
+#!/grid/gillis/home/nfox/software/python3.9.5/bin/python
+
+"""
+Author: Nathan Fox <nchristopherfox@gmail.com>
+Modified: 2021-06-25
+"""
+
+import subprocess
+
+
+def get_constants(usage):
+    """Get formatting constants.
+
+    Args:
+        usage: bool. If True, add wall clock and max mem usage.
+
+    Returns:
+        Tuple of 3. Header string (including horizontal span separator),
+        list of header fields and column widths, dict to translate
+        qstat job states to qqstat job states.
+    """
+    header_widths = [
+        ('owner', 8),
+        ('job ID', 10),
+        ('job name', 25),
+        ('job state', 13),
+        ('start(r)/submit(q)', 20),
+        ('memory', 8),
+        ('threads', 7)
+    ]
+    if usage:
+        header_widths += [('wall clock', 12), ('max mem', 6)]
+    header = '  '.join([f'{name:{width}s}' for name, width in header_widths])
+    header = header + '\n' + '-' * len(header)
+    run_state = {
+        'r': 'running',
+        't': 'transferring',
+        'R': 'restarting',
+        's': 'suspended',
+        'S': 'suspended',
+        'T': 'T',
+        'w': 'waiting',
+        'h': 'on hold',
+        'e': 'error',
+        'q': 'queued'
+    }
+    return header, header_widths, run_state
+
+
+def get_jobs():
+    """Get the list of job_ids returned by qstat.
+
+    Returns:
+        List of job_ids as strings.
+
+    Raises:
+        RuntimeError: If qstat system call fails.
+    """
+    qstat = subprocess.run(['qstat'], capture_output=True, text=True)
+    if qstat.returncode != 0:
+        raise RuntimeError('qstat returned a non-zero exit code: '
+                           f'{qstat.returncode}\n\n{qstat.stderr}')
+    output = [line for line in qstat.stdout.splitlines() if line != '']
+    if not output:
+        return []
+    del output[0]
+    if ''.join(list(set(list(output[0])))) == '-':
+        del output[0]
+    job_ids = [line.split()[0].strip() for line in output]
+    return job_ids
+
+
+def get_job_data(job_id):
+    """Get data for specific job.
+
+    Args:
+        job_id: str. ID of the job to query.
+
+    Returns:
+        dict of data for job_id, keyed by qstat field name.
+
+    Raises:
+        RuntimeError: If the job-specific qstat system call fails.
+    """
+    qstat = subprocess.run(['qstat', '-j', f'{job_id}'],
+                           capture_output=True, text=True)
+    if qstat.returncode != 0:
+        raise RuntimeError(f'\"{" ".join(qstat.args)}\" returned a '
+                           'non-zero exit code: '
+                           f'{qstat.returncode}\n\n{qstat.stderr}')
+    job_data = qstat.stdout.splitlines()
+    if ''.join(list(set(list(job_data[0])))) == '=':
+        del job_data[0]
+    # Concatenate env_list field that includes newlines
+    start_index = -1
+    end_index = -1
+    for i, rec in enumerate(job_data):
+        if rec.startswith('env_list'):
+            start_index = i
+        elif rec.startswith('job_args'):
+            end_index = i
+    job_data = (job_data[:start_index]
+                + ['\n'.join(job_data[start_index:end_index])]
+                + job_data[end_index:])
+    # Find column in which values begin
+    job_number_record = ''
+    for rec in job_data:
+        if rec.startswith('job_number'):
+            job_number_record = rec
+            break
+    value_index = -1
+    for i, c in enumerate(job_number_record):
+        if c.isnumeric():
+            value_index = i
+            break
+    if value_index == -1:
+        job_data_text = '\n'.join(job_data)
+        raise AssertionError(f'No "job_number" field in "qstat -j {job_id}"'
+                             f'\n\nRecord:\n{job_data_text}')
+    temp = {}
+    for jdata in job_data:
+        name = jdata[:value_index].split()[0].strip(' \t\n:')
+        value = jdata[value_index:].strip()
+        temp[name] = value
+    job_data = temp
+    return job_data
+
+
+def build_output_record(job_data, usage):
+    """Build output line for a job.
+
+    Args:
+        job_data: dict. Data for a specific job, keyed by qstat field name.
+        usage: bool. If True, add wall clock and max mem usage.
+
+    Returns:
+        String of the job data, formatted as a single pretty line.
+    """
+    header, header_widths, run_state = get_constants(usage)
+    # Choose time field and format job state
+    if 'start_time' in job_data:
+        time_entry = job_data['start_time'].split('.')[0]
+    elif 'submission_time' in job_data:
+        time_entry = job_data['submission_time'].split('.')[0]
+    else:
+        time_entry = ''
+    if job_data['job_state'] not in run_state:
+        run_state[job_data['job_state']]['state'] = job_data['job_state']
+
+    # Build output record
+    newr = {}
+    newr['owner'] = job_data['owner']
+    newr['job ID'] = job_data['job_number']
+    newr['job name'] = job_data['job_name']
+    newr['job state'] = run_state[job_data['job_state']]
+    newr['start(r)/submit(q)'] = time_entry
+    newr['threads'] = job_data['parallel'].split()[-1]
+    mem_value = []
+    mem_text = job_data['hard'].replace('m_mem_free=', '')
+    for i, c in enumerate(mem_text):
+        if c.isnumeric() or c == '.':
+            mem_value.append(c)
+        else:
+            break
+    mem_value = float(''.join(mem_value)) * float(newr['threads'])
+    newr['memory'] = f'{mem_value:.1f} {mem_text[i:]}'
+    if usage:
+        if newr['job state'] == 'running':
+            runstats = {}
+            for rs in job_data['usage'].split(', '):
+                stat, value = rs.split('=')
+                runstats[stat] = value
+            newr['wall clock'] = runstats['wallclock']
+            if runstats['maxvmem'] == 'N/A':
+                newr['max mem'] = ''
+            else:
+                mem_value = []
+                for i, c in enumerate(runstats['maxvmem']):
+                    if c.isnumeric() or c == '.':
+                        mem_value.append(c)
+                    else:
+                        break
+                mem_value = float(''.join(mem_value))
+                newr['max mem'] = (f'{mem_value:.1f} '
+                                   f'{runstats["maxvmem"][i:]}')
+        else:
+            newr['wall clock'] = ''
+            newr['max mem'] = ''
+    newline = [f'{newr[name]:{width}s}' for name, width in header_widths]
+    newline = '  '.join(newline)
+    return newline
+
+
+def main(usage):
+    """Replacement for UGE qstat.
+
+    UGE qstat as a summary without args is poorly formatted
+    and somewhat unhelpful. This is a drop in for "qstat". It
+    does not support anything beyond vanilla "qstat" without
+    any arguments or flags. Includes useful fields and ignores
+    unimportant fields (in the author's opinion). The output is
+    also not as wide as qstat output. Without usage stats,
+    it is 91 characters wide, growing to 109 with usage stats.
+    qstat output is 147 characters wide.
+
+    Args:
+        usage: bool. If True, add wall clock and max mem usage.
+    """
+    header, header_widths, run_state = get_constants(usage)
+    records = [header]
+    job_ids = get_jobs()
+    for jid in job_ids:
+        job_data = get_job_data(jid)
+        newline = build_output_record(job_data, usage)
+        records.append(newline)
+    if len(records) == 1:
+
+        # No qstat output
+        return
+    else:
+        print('\n'.join(records))
+        print('\n')
+
+
+if __name__ == '__main__':
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--usage', action='store_true',
+                        help='Includes current runtime information, e.g. '
+                             'wall clock, max memory.')
+    args = parser.parse_args()
+    main(args.usage)

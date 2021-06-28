@@ -97,7 +97,8 @@ def get_job_data(job_id):
     for i, rec in enumerate(job_data):
         if rec.startswith('env_list'):
             start_index = i
-        elif rec.startswith('job_args'):
+        elif 'OLDPWD' in rec:
+        # elif rec.startswith('job_args'):
             end_index = i
     job_data = (job_data[:start_index]
                 + ['\n'.join(job_data[start_index:end_index])]
@@ -144,26 +145,47 @@ def build_output_record(job_data, usage):
         time_entry = job_data['submission_time'].split('.')[0]
     else:
         time_entry = ''
-    if job_data['job_state'] not in run_state:
-        run_state[job_data['job_state']]['state'] = job_data['job_state']
+    # run_state[job_data['job_state']]['state'] = job_data['job_state']
+    if 'job_state' not in job_data:
+        run_state = ''
+    elif job_data['job_state'] not in run_state:
+        run_state = job_data['job_state']
+    else:
+        run_state = run_state[job_data['job_state']]
 
     # Build output record
     newr = {}
-    newr['owner'] = job_data['owner']
-    newr['job ID'] = job_data['job_number']
-    newr['job name'] = job_data['job_name']
-    newr['job state'] = run_state[job_data['job_state']]
-    newr['start(r)/submit(q)'] = time_entry
-    newr['threads'] = job_data['parallel'].split()[-1]
-    mem_value = []
-    mem_text = job_data['hard'].replace('m_mem_free=', '')
-    for i, c in enumerate(mem_text):
-        if c.isnumeric() or c == '.':
-            mem_value.append(c)
+    for jd, newrec in [('owner', 'owner'), ('job_number', 'job ID'),
+                       ('job_name', 'job name'), ('job_state', 'job state')]:
+        if jd in job_data:
+            newr[newrec] = job_data[jd]
         else:
-            break
-    mem_value = float(''.join(mem_value)) * float(newr['threads'])
-    newr['memory'] = f'{mem_value:.1f} {mem_text[i:]}'
+            newr[newrec] = ''
+    # newr['owner'] = job_data['owner']
+    # newr['job ID'] = job_data['job_number']
+    # newr['job name'] = job_data['job_name']
+    # newr['job state'] = run_state[job_data['job_state']]
+    newr['job state'] = run_state
+    newr['start(r)/submit(q)'] = time_entry
+    if 'parallel' in job_data:
+        newr['threads'] = job_data['parallel'].split()[-1]
+    else:
+        newr['threads'] = '1'
+    if 'hard' in job_data:
+        mem_value = []
+        mem_text = job_data['hard'].replace('m_mem_free=', '')
+        for i, c in enumerate(mem_text):
+            if c.isnumeric() or c == '.':
+                mem_value.append(c)
+            else:
+                break
+        if newr['threads'] == '':
+            mem_value = float(''.join(mem_value))
+        else:
+            mem_value = float(''.join(mem_value)) * float(newr['threads'])
+        newr['memory'] = f'{mem_value:.1f} {mem_text[i:]}'
+    else:
+        newr['memory'] = ''
     if usage:
         if newr['job state'] == 'running':
             runstats = {}

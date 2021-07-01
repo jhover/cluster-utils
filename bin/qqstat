@@ -97,11 +97,16 @@ def get_job_data(job_id):
     for i, rec in enumerate(job_data):
         if rec.startswith('env_list'):
             start_index = i
-        elif 'OLDPWD' in rec:
-        # elif rec.startswith('job_args'):
+    for i, rec in enumerate(job_data):
+        if i <= start_index:
+            continue
+        elif rec.startswith(' ') or rec.startswith('}'):
+            continue
+        else:
             end_index = i
+            break
     job_data = (job_data[:start_index]
-                + ['\n'.join(job_data[start_index:end_index])]
+                + [' '.join(job_data[start_index:end_index])]
                 + job_data[end_index:])
     # Find column in which values begin
     job_number_record = ''

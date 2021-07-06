@@ -141,7 +141,7 @@ if __name__ == '__main__':
                         default=0,
                         help='max number of entries to display (default all)')
 
-    parser.add_argument('-m', '--memorystat', default='maxvmem', nargs=1,
+    parser.add_argument('-m', '--memorystat', default=['maxvmem'], nargs=1,
                         choices=['maxvmem', 'maxrss', 'both'],
                         help='The memory runtime statistics to be displayed. '
                              'Can be \'maxvmem\', \'maxrss\', or \'both\'. '

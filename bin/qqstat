@@ -8,7 +8,7 @@ Modified: 2021-06-25
 import subprocess
 
 
-def get_constants(usage):
+def get_constants(usage, memorystats):
     """Get formatting constants.
 
     Args:
@@ -28,11 +28,15 @@ def get_constants(usage):
         ('memory', 8),
         ('threads', 7)
     ]
+    memory_labels = {'maxvmem': 'max virt_mem',
+                     'maxrss': 'max phys_mem'}
     if usage:
-        header_widths += [('wall clock', 12), ('max mem', 6)]
+        header_widths += [('wall clock', 12)]
+        for memstat in memorystats:
+            header_widths += [(memory_labels[memstat], 11)]
     header = '  '.join([f'{name:{width}s}' for name, width in header_widths])
     header = header + '\n' + '-' * len(header)
-    run_state = {
+    run_state_ref = {
         'r': 'running',
         't': 'transferring',
         'R': 'restarting',
@@ -42,16 +46,17 @@ def get_constants(usage):
         'w': 'waiting',
         'h': 'on hold',
         'e': 'error',
-        'q': 'queued'
+        'q': 'queued',
+        'qw': 'queued/wait'
     }
-    return header, header_widths, run_state
+    return header, header_widths, run_state_ref, memory_labels
 
 
 def get_jobs():
     """Get the list of job_ids returned by qstat.
 
     Returns:
-        List of job_ids as strings.
+        Tuple of two lists: job_ids and run_states as strings.
 
     Raises:
         RuntimeError: If qstat system call fails.
@@ -67,7 +72,8 @@ def get_jobs():
     if ''.join(list(set(list(output[0])))) == '-':
         del output[0]
     job_ids = [line.split()[0].strip() for line in output]
-    return job_ids
+    run_states = [line.split()[4].strip() for line in output]
+    return job_ids, run_states
 
 
 def get_job_data(job_id):
@@ -132,17 +138,19 @@ def get_job_data(job_id):
     return job_data
 
 
-def build_output_record(job_data, usage):
+def build_output_record(job_data, run_state, usage, memorystats):
     """Build output line for a job.
 
     Args:
         job_data: dict. Data for a specific job, keyed by qstat field name.
+        run_state: str. run_state of the job with job_data
         usage: bool. If True, add wall clock and max mem usage.
 
     Returns:
         String of the job data, formatted as a single pretty line.
     """
-    header, header_widths, run_state = get_constants(usage)
+    (header, header_widths,
+     run_state_ref, memory_labels) = get_constants(usage, memorystats)
     # Choose time field and format job state
     if 'start_time' in job_data:
         time_entry = job_data['start_time'].split('.')[0]
@@ -150,13 +158,10 @@ def build_output_record(job_data, usage):
         time_entry = job_data['submission_time'].split('.')[0]
     else:
         time_entry = ''
-    # run_state[job_data['job_state']]['state'] = job_data['job_state']
-    if 'job_state' not in job_data:
-        run_state = ''
-    elif job_data['job_state'] not in run_state:
-        run_state = job_data['job_state']
+    if run_state not in run_state_ref:
+        run_state = run_state  # No effect; here for readability
     else:
-        run_state = run_state[job_data['job_state']]
+        run_state = run_state_ref[run_state]
 
     # Build output record
     newr = {}
@@ -166,10 +171,6 @@ def build_output_record(job_data, usage):
             newr[newrec] = job_data[jd]
         else:
             newr[newrec] = ''
-    # newr['owner'] = job_data['owner']
-    # newr['job ID'] = job_data['job_number']
-    # newr['job name'] = job_data['job_name']
-    # newr['job state'] = run_state[job_data['job_state']]
     newr['job state'] = run_state
     newr['start(r)/submit(q)'] = time_entry
     if 'parallel' in job_data:
@@ -198,27 +199,31 @@ def build_output_record(job_data, usage):
                 stat, value = rs.split('=')
                 runstats[stat] = value
             newr['wall clock'] = runstats['wallclock']
-            if runstats['maxvmem'] == 'N/A':
-                newr['max mem'] = ''
-            else:
-                mem_value = []
-                for i, c in enumerate(runstats['maxvmem']):
-                    if c.isnumeric() or c == '.':
-                        mem_value.append(c)
-                    else:
-                        break
-                mem_value = float(''.join(mem_value))
-                newr['max mem'] = (f'{mem_value:.1f} '
-                                   f'{runstats["maxvmem"][i:]}')
+            for memstat in memorystats:
+                if memstat not in runstats:
+                    newr[memstat] = ''
+                elif runstats[memstat] == 'N/A':
+                    newr[memory_labels[memstat]] = ''
+                else:
+                    mem_value = []
+                    for i, c in enumerate(runstats[memstat]):
+                        if c.isnumeric() or c == '.':
+                            mem_value.append(c)
+                        else:
+                            break
+                    mem_value = float(''.join(mem_value))
+                    newr[memory_labels[memstat]] = (f'{mem_value:.1f} '
+                                                    f'{runstats[memstat][i:]}')
         else:
             newr['wall clock'] = ''
-            newr['max mem'] = ''
+            for memstat in memorystats:
+                newr[memory_labels[memstat]] = ''
     newline = [f'{newr[name]:{width}s}' for name, width in header_widths]
     newline = '  '.join(newline)
     return newline
 
 
-def main(usage):
+def main(usage, memorystats=['maxvmem']):
     """Replacement for UGE qstat.
 
     UGE qstat as a summary without args is poorly formatted
@@ -232,16 +237,20 @@ def main(usage):
 
     Args:
         usage: bool. If True, add wall clock and max mem usage.
+        memorystats: list. Indicates the memory usage stats to be
+            displayed if usage is True.
     """
-    header, header_widths, run_state = get_constants(usage)
+    if memorystats == ['both']:
+        memorystats = ['maxvmem', 'maxrss']
+    (header, header_widths,
+     run_state_ref, memory_labels) = get_constants(usage, memorystats)
     records = [header]
-    job_ids = get_jobs()
-    for jid in job_ids:
+    job_ids, run_states = get_jobs()
+    for jid, run_state in zip(job_ids, run_states):
         job_data = get_job_data(jid)
-        newline = build_output_record(job_data, usage)
+        newline = build_output_record(job_data, run_state, usage, memorystats)
         records.append(newline)
     if len(records) == 1:
-
         # No qstat output
         return
     else:
@@ -255,5 +264,13 @@ if __name__ == '__main__':
     parser.add_argument('--usage', action='store_true',
                         help='Includes current runtime information, e.g. '
                              'wall clock, max memory.')
+    parser.add_argument('-m', '--memorystats', default=['maxvmem'], nargs=1,
+                        choices=['maxvmem', 'maxrss', 'both'],
+                        help='If --usage is passed, the memory runtime '
+                             'statistics to be displayed. Can be \'maxvmem\', '
+                             '\'maxrss\', or \'both\'. maxvmem refers to '
+                             'virtual memory usage; maxrss refers to '
+                             'physical memory usage. Ignored if --usage is '
+                             'not passed.')
     args = parser.parse_args()
-    main(args.usage)
+    main(args.usage, args.memorystats)

@@ -42,6 +42,8 @@ def parse_output(lines):
                 current["end_time"] = value
             elif key == "maxvmem":
                 current["maxvmem"] = value
+            elif key == "maxrss":
+                current["maxrss"] = value
             elif key == "pe_taskid":
                 current["pe_taskid"] = value
             elif key == "submit_cmd":
@@ -61,18 +63,23 @@ def get_history(days=1, user=get_username()):
     return joblist
 
 
-def printjoblist(joblist, header=False, nlines=0):
+def printjoblist(joblist, header=False, nlines=0, memorystat=['maxvmem']):
 #    fields = ["jobnumber", "jobname", "pe_taskid", "ru_wallclock", "slots", "maxvmem", "exit_status","submit_cmd"  ]
-    fields = [ ("jobnumber", 10),
-               ("jobname", 25),
-               ( "pe_taskid", 6),
-               ( "start_time", 25),
-               ("end_time", 25 ),
-               ("wallclock", 10),
-               ( "slots", 4 ),
-               ( "maxvmem", 10),
-               ( "exit_status", 6 )
-               ]
+    if memorystat == ['both']:
+        memorystat = ['maxvmem', 'maxrss']
+    fields = (
+        [
+            ("jobnumber", 10),
+            ("jobname", 25),
+            ( "pe_taskid", 6),
+            ( "start_time", 25),
+            ("end_time", 25 ),
+            ("wallclock", 10),
+            ( "slots", 7 )
+        ]
+        + list(zip(memorystat, [10]*len(memorystat)))
+        + [( "exit_status", 6 )]
+    )
     hlist = []
     slist = []
     if header:
@@ -134,10 +141,17 @@ if __name__ == '__main__':
                         default=0,
                         help='max number of entries to display (default all)')
 
+    parser.add_argument('-m', '--memorystat', default='maxvmem', nargs=1,
+                        choices=['maxvmem', 'maxrss', 'both'],
+                        help='The memory runtime statistics to be displayed. '
+                             'Can be \'maxvmem\', \'maxrss\', or \'both\'. '
+                             'maxvmem refers to virtual memory usage; '
+                             'maxrss refers to physical memory usage.')
+
     args= parser.parse_args()
 
     joblist = get_history(days=args.days)
-    out = printjoblist(joblist, args.header, args.nlines)
+    out = printjoblist(joblist, args.header, args.nlines, args.memorystat)
     try:
         sys.stdout.write(out)
     except IOError as e:

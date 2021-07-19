@@ -225,7 +225,7 @@ def build_output_record(job_data, run_state, usage, memorystats):
     return newline
 
 
-def main(usage, memorystats=['maxvmem']):
+def main(usage, memorystats=['maxvmem'], njobs=0):
     """Replacement for UGE qstat.
 
     UGE qstat as a summary without args is poorly formatted
@@ -241,24 +241,29 @@ def main(usage, memorystats=['maxvmem']):
         usage: bool. If True, add wall clock and max mem usage.
         memorystats: list. Indicates the memory usage stats to be
             displayed if usage is True.
+        njobs: int. The maximum number of jobs to display.
+            A value <= 0 will return all available jobs.
     """
     if memorystats == ['both']:
         memorystats = ['maxvmem', 'maxrss']
     (header, header_widths,
      run_state_ref, memory_labels) = get_constants(usage, memorystats)
-    records = [header]
     job_ids, run_states = get_jobs()
-    for jid, run_state in zip(job_ids, run_states):
+    if len(job_ids) == 1:
+        return  # No qstat output
+    try:
+        print(header)
+    except BrokenPipeError:
+        return
+    if njobs <= 0:
+        njobs = len(job_ids)
+    for i, (jid, run_state) in enumerate(zip(job_ids, run_states)):
+        if i >= njobs:
+            return
         job_data = get_job_data(jid)
         newline = build_output_record(job_data, run_state, usage, memorystats)
-        records.append(newline)
-    if len(records) == 1:
-        # No qstat output
-        return
-    else:
         try:
-            print('\n'.join(records))
-            print()
+            print(newline)
         except BrokenPipeError:
             return
 
@@ -277,5 +282,8 @@ if __name__ == '__main__':
                              'virtual memory usage; maxrss refers to '
                              'physical memory usage. Ignored if --usage is '
                              'not passed.')
+    parser.add_argument('-n', '--njobs', default=0, type=int,
+                        help='Maximum number of jobs to display. Default is '
+                             'all jobs. A number <= 0 will default.')
     args = parser.parse_args()
-    main(args.usage, args.memorystats)
+    main(args.usage, args.memorystats, args.njobs)

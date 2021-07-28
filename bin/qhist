@@ -72,8 +72,8 @@ def printjoblist(joblist, header=False, nlines=0, memorystat=['maxvmem']):
             ("jobnumber", 10),
             ("jobname", 25),
             ( "pe_taskid", 6),
-            ( "start_time", 25),
-            ("end_time", 25 ),
+            ( "start_time", 22),
+            ("end_time", 22 ),
             ("wallclock", 10),
             ( "slots", 7 )
         ]
@@ -111,6 +111,8 @@ def printjoblist(joblist, header=False, nlines=0, memorystat=['maxvmem']):
                     else:
                         new_value.append(f'{val:02d}')
                 value = ':'.join(new_value)
+            elif f.endswith('_time'):
+                value = value[:-4]
             value = value[:(w -1)]  # strip it if longer than field.
             s += f"{value}"
             pad = ' ' * (w - len(value))

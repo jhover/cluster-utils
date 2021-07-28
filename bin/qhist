@@ -39,15 +39,17 @@ def parse_output(lines):
             elif key == "start_time":
                 current["start_time"] = value
             elif key == "end_time":
-                current["end_time"] = value            
+                current["end_time"] = value
             elif key == "maxvmem":
                 current["maxvmem"] = value
+            elif key == "maxrss":
+                current["maxrss"] = value
             elif key == "pe_taskid":
                 current["pe_taskid"] = value
             elif key == "submit_cmd":
                 current["submit_cmd"] = value
 
-    return lod    
+    return lod
 
 
 def get_history(days=1, user=get_username()):
@@ -61,26 +63,31 @@ def get_history(days=1, user=get_username()):
     return joblist
 
 
-def printjoblist(joblist, header=False, nlines=0):
+def printjoblist(joblist, header=False, nlines=0, memorystat=['maxvmem']):
 #    fields = ["jobnumber", "jobname", "pe_taskid", "ru_wallclock", "slots", "maxvmem", "exit_status","submit_cmd"  ]
-    fields = [ ("jobnumber", 10),
-               ("jobname", 25),
-               ( "pe_taskid", 6),
-               ( "start_time", 25),
-               ("end_time", 25 ),
-               ("wallclock", 10),
-               ( "slots", 4 ),
-               ( "maxvmem", 10),
-               ( "exit_status", 6 )
-               ]
+    if memorystat == ['both']:
+        memorystat = ['maxvmem', 'maxrss']
+    fields = (
+        [
+            ("jobnumber", 10),
+            ("jobname", 25),
+            ( "pe_taskid", 6),
+            ( "start_time", 22),
+            ("end_time", 22 ),
+            ("wallclock", 10),
+            ( "slots", 7 )
+        ]
+        + list(zip(memorystat, [10]*len(memorystat)))
+        + [( "exit_status", 6 )]
+    )
     hlist = []
     slist = []
     if header:
         s=""
         for (f, w) in fields:
            value = f
-           value = value[:(w -1)]  # strip it if longer than field. 
-           s += f"{value}" 
+           value = value[:(w -1)]  # strip it if longer than field.
+           s += f"{value}"
            pad = ' ' * (w - len(value))
            s += pad
         hlist.append(s)
@@ -89,60 +96,105 @@ def printjoblist(joblist, header=False, nlines=0):
     for jobdict in joblist:
         s=""
         for (f, w) in fields:
-           value = jobdict[f]
-           value = value[:(w -1)]  # strip it if longer than field. 
-           s += f"{value}" 
-           pad = ' ' * (w - len(value))
-           s += pad
+            value = jobdict[f]
+            if f == 'wallclock':
+                value = int(float(value))
+                if value >= 86400:
+                    days = True
+                else:
+                    days = False
+                value = convert_seconds(value, days=days)
+                new_value = []
+                for i, val in enumerate(value):
+                    if i == 0:
+                        new_value.append(f'{val:2d}')
+                    else:
+                        new_value.append(f'{val:02d}')
+                value = ':'.join(new_value)
+            elif f.endswith('_time'):
+                value = value[:-4]
+            value = value[:(w -1)]  # strip it if longer than field.
+            s += f"{value}"
+            pad = ' ' * (w - len(value))
+            s += pad
         slist.append(s)
     if nlines > 0:
         slist = slist[:nlines]
-    
+
     out = '\n'.join(hlist + slist)
     out = out + '\n'
     return out
+
+
+def convert_seconds(seconds, days=False):
+    """Convert seconds to hours, minutes, and seconds.
+
+    Args:
+        seconds: integer. Number of seconds to be converted.
+        days: boolean. If True, a 4-member tuple is returned
+            with days.
+
+    Returns:
+        A tuple of 3 integers. Seconds converted to
+        hours, minutes, seconds. If days=True, then days is
+        included and a 4 member tuple is returned.
+    """
+    m, s = divmod(seconds, 60)
+    h, m = divmod(m, 60)
+    if days:
+        d, h = divmod(h, 24)
+        return d, h, m, s
+    else:
+        return h, m, s
 
 
 if __name__ == '__main__':
     # FORMAT='%(asctime)s (UTC) [ %(levelname)s ] %(filename)s:%(lineno)d %(name)s.%(funcName)s(): %(message)s'
     # logging.basicConfig(format=FORMAT)
     parser = argparse.ArgumentParser()
-      
-    # parser.add_argument('-d', '--debug', 
-    #                     action="store_true", 
-    #                     dest='debug', 
+
+    # parser.add_argument('-d', '--debug',
+    #                     action="store_true",
+    #                     dest='debug',
     #                     help='debug logging')
 
-    # parser.add_argument('-v', '--verbose', 
-    #                     action="store_true", 
-    #                     dest='verbose', 
+    # parser.add_argument('-v', '--verbose',
+    #                     action="store_true",
+    #                     dest='verbose',
     #                     help='verbose logging')
 
-    parser.add_argument('-D','--days', 
-                        metavar='days', 
+    parser.add_argument('-D','--days',
+                        metavar='days',
                         type=int,
-                        default=7, 
+                        default=7,
                         help='days previous to query')
-    
+
     parser.add_argument('-H', '--header',
                         action='store_true',
                         dest='header',
                         help='print column headers before output')
-    
+
     parser.add_argument('-n', '--nlines',
                         type=int,
                         default=0,
                         help='max number of entries to display (default all)')
-   
-    args= parser.parse_args()    
-    
+
+    parser.add_argument('-m', '--memorystat', default=['maxvmem'], nargs=1,
+                        choices=['maxvmem', 'maxrss', 'both'],
+                        help='The memory runtime statistics to be displayed. '
+                             'Can be \'maxvmem\', \'maxrss\', or \'both\'. '
+                             'maxvmem refers to virtual memory usage; '
+                             'maxrss refers to physical memory usage.')
+
+    args= parser.parse_args()
+
     joblist = get_history(days=args.days)
-    out = printjoblist(joblist, args.header, args.nlines)
+    out = printjoblist(joblist, args.header, args.nlines, args.memorystat)
     try:
         sys.stdout.write(out)
     except IOError as e:
         pass
-    
 
-    
-    
+
+
+

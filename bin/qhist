@@ -96,11 +96,25 @@ def printjoblist(joblist, header=False, nlines=0, memorystat=['maxvmem']):
     for jobdict in joblist:
         s=""
         for (f, w) in fields:
-           value = jobdict[f]
-           value = value[:(w -1)]  # strip it if longer than field.
-           s += f"{value}"
-           pad = ' ' * (w - len(value))
-           s += pad
+            value = jobdict[f]
+            if f == 'wallclock':
+                value = int(float(value))
+                if value >= 86400:
+                    days = True
+                else:
+                    days = False
+                value = convert_seconds(value, days=days)
+                new_value = []
+                for i, val in enumerate(value):
+                    if i == 0:
+                        new_value.append(f'{val:2d}')
+                    else:
+                        new_value.append(f'{val:02d}')
+                value = ':'.join(new_value)
+            value = value[:(w -1)]  # strip it if longer than field.
+            s += f"{value}"
+            pad = ' ' * (w - len(value))
+            s += pad
         slist.append(s)
     if nlines > 0:
         slist = slist[:nlines]
@@ -108,6 +122,28 @@ def printjoblist(joblist, header=False, nlines=0, memorystat=['maxvmem']):
     out = '\n'.join(hlist + slist)
     out = out + '\n'
     return out
+
+
+def convert_seconds(seconds, days=False):
+    """Convert seconds to hours, minutes, and seconds.
+
+    Args:
+        seconds: integer. Number of seconds to be converted.
+        days: boolean. If True, a 4-member tuple is returned
+            with days.
+
+    Returns:
+        A tuple of 3 integers. Seconds converted to
+        hours, minutes, seconds. If days=True, then days is
+        included and a 4 member tuple is returned.
+    """
+    m, s = divmod(seconds, 60)
+    h, m = divmod(m, 60)
+    if days:
+        d, h = divmod(h, 24)
+        return d, h, m, s
+    else:
+        return h, m, s
 
 
 if __name__ == '__main__':

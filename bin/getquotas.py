@@ -5,7 +5,7 @@ import logging
 import subprocess
 
 
-FSLIST = ['data','home']
+FSLIST = ['gillis_hpc_data','gillis_hpc_home', 'gillis_hpc_data_norepl','gillis_hpc_nlsas_data']
 QUOTACMD = '/usr/lpp/mmfs/bin/mmlsquota'
 
 
@@ -74,7 +74,7 @@ if __name__ == "__main__":
         logging.getLogger().setLevel(logging.INFO)
 
     for fs in FSLIST:
-        cmd = [QUOTACMD, '-j',f'gillis_hpc_{fs}', 'grid']
+        cmd = [QUOTACMD, '-j', f'{fs}', 'grid']
         (err, out, rc) = run_command_shell(cmd)
         (kb, quota, limit) = parse_mmls_output(out) 
         mb = kb / 1024

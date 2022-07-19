@@ -1,11 +1,21 @@
 #!/usr/bin/env python
+#
+#  /usr/lpp/mmfs/bin/mmlsquota -j gillis_hpc_data grid   
+#  
+#
+#
+#   
+#
+
+
+
 import argparse
 import datetime as dt
 import logging
 import subprocess
 
 
-FSLIST = ['gillis_hpc_data','gillis_hpc_home', 'gillis_hpc_data_norepl', 'gillis_hpc_nlsas_data']
+FSLIST = ['gillis_hpc_data','gillis_hpc_home', 'gillis_nlsas_data', 'gillis_nlsas_norepl_data']
 QUOTACMD = '/usr/lpp/mmfs/bin/mmlsquota'
 
 

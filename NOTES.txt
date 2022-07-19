@@ -1,4 +1,24 @@
 
+Hi John,
+
+The data and rdata directories share a quota.
+
+The /grid/ paths are currently bind mounts to the actual /mnt/grid/ paths. When sonas was the primary storage system for 
+HPC the NFS exports had been mounted at /sonas-hs/ on BnB and a lot of the internal pathing requirements were hidden from 
+users. With grid the gpfs filesystem was directly mounted on the nodes so the full paths with some redundant naming 
+(for example /mnt/grid/gillis/hpc/data/data/ ) was exposed. To minimize the migration impact the new paths were symlinked 
+to /sonas-hs/. With the move to Elzar the /sonas-hs/ paths are being abandoned which means users have to change anything 
+that's hard coded. We're planning some filesystem changes down the road which will require a new mountpoint for the whole 
+filesystem other than /mnt/grid. We decided to preemptively create the new mountpoint /grid/ and bind mount from /mnt/grid 
+paths to /grid/ similar to the symlinks that were in place for /sonas-hs/. This does obfuscate some information like the 
+shared quota between data and rdata (they are both directories under /mnt/grid/hpc/data/ ). You can find what paths are 
+bind mounted with the findmount command. Long term we'll be moving the data around on the file system and will reach out 
+about how to restructure the quotas. We will be able to have one shared quota for /grid/gillis/, or dedicated quotas for 
+each directory. I expect that is a year or two out.
+
+Thanks
+      -Alex
+
 
 --cluster-cancel
 

@@ -1,0 +1,52 @@
+#!/usr/bin/env python
+#
+# /usr/lpp/mmfs/bin/mmlsquota -j gillis_hpc_data grid
+#
+#
+
+import argparse
+import logging
+import os
+import pwd
+import subprocess
+import sys
+
+if __name__ == '__main__':
+    FORMAT='%(asctime)s (UTC) [ %(levelname)s ] %(filename)s:%(lineno)d %(name)s.%(funcName)s(): %(message)s'
+    logging.basicConfig(format=FORMAT)
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('-d', '--debug',
+                         action="store_true",
+                         dest='debug',
+                         help='debug logging')
+
+    parser.add_argument('-v', '--verbose',
+                         action="store_true",
+                         dest='verbose',
+                         help='verbose logging')
+
+    parser.add_argument('-D','--days',
+                        metavar='days',
+                        type=int,
+                        default=7,
+                        help='days previous to query')
+
+    parser.add_argument('-H', '--header',
+                        action='store_true',
+                        dest='header',
+                        help='print column headers before output')
+
+    parser.add_argument('-n', '--nlines',
+                        type=int,
+                        default=0,
+                        help='max number of entries to display (default all)')
+
+    parser.add_argument('-m', '--memorystat', default=['maxvmem'], nargs=1,
+                        choices=['maxvmem', 'maxrss', 'both'],
+                        help='The memory runtime statistics to be displayed. '
+                             'Can be \'maxvmem\', \'maxrss\', or \'both\'. '
+                             'maxvmem refers to virtual memory usage; '
+                             'maxrss refers to physical memory usage.')
+
+    args= parser.parse_args()

@@ -5,7 +5,7 @@ import logging
 import subprocess
 
 
-FSLIST = ['gillis_hpc_data','gillis_hpc_home', 'gillis_hpc_data_norepl','gillis_hpc_nlsas_data']
+FSLIST = ['gillis_hpc_data','gillis_hpc_home', 'gillis_hpc_data_norepl', 'gillis_hpc_nlsas_data']
 QUOTACMD = '/usr/lpp/mmfs/bin/mmlsquota'
 
 

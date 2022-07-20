@@ -92,5 +92,5 @@ if __name__ == "__main__":
         qmb = quota / 1024
         qgb = int(qmb / 1024)
         free = qgb - gb
-        print(f'{fs} current={gb} GB  quota={qgb} GB free={free} GB') 
+        print(f'{fs}\tused={gb} GB\tquota={qgb} GB\tfree={free} GB') 
 

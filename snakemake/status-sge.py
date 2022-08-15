@@ -22,6 +22,7 @@ def run_command_shell(cmd):
 
 jobid = sys.argv[1]
 status = "unknown"
+exit_status = "unknown"
 
 statcmd = ['qstat', '-j', f'{jobid}'  ]
 acctcmd = ['qacct', '-j', f'{jobid}'  ]
@@ -40,9 +41,11 @@ else:
         #print(f"{key} = {value}")
         if key == "exit_status":
             exit_status = value
+    
     if str(exit_status) == '0':
         status = 'success'
     else:
         status = 'failed'
+
 print(status)
   

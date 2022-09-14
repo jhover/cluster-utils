@@ -53,7 +53,10 @@ def parse_output(lines):
     return lod
 
 
-def get_history(days=1, user=get_username()):
+def get_history(days=1, user=None):
+    if user is None:
+        user = get_username()
+    
     cmd = f"qacct -j -d {days} -o {user}"
     result = subprocess.check_output( cmd, shell=True, text=True )
     lines = result.split('\n')
@@ -179,6 +182,11 @@ if __name__ == '__main__':
                         type=int,
                         default=0,
                         help='max number of entries to display (default all)')
+    
+    parser.add_argument('-u', '--user',
+                        default=0,
+                        default=None, 
+                        help='username to get info for [current user]')
 
     parser.add_argument('-m', '--memorystat', default=['maxvmem'], nargs=1,
                         choices=['maxvmem', 'maxrss', 'both'],
@@ -189,13 +197,10 @@ if __name__ == '__main__':
 
     args= parser.parse_args()
 
-    joblist = get_history(days=args.days)
+    joblist = get_history(days=args.days, user=args.user)
     out = printjoblist(joblist, args.header, args.nlines, args.memorystat)
     try:
         sys.stdout.write(out)
     except IOError as e:
         pass
-
-
-
 

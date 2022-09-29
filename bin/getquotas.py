@@ -26,7 +26,6 @@ FSLIST = ['gillis_hpc_data',
           'gillis_hpc_home', 
           'gillis_nlsas_data', 
           'gillis_nlsas_norepl_data',
-          'zador_hpc_data',
           'zador_hpc_home', 
           'zador_nlsas_data', 
           'zador_nlsas_norepl_data'

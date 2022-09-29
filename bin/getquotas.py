@@ -2,7 +2,14 @@
 #
 #  /usr/lpp/mmfs/bin/mmlsquota -j gillis_hpc_data grid   
 #  
-#
+# zador_hpc                Linked  /mnt/grid/zador/hpc
+# zador_hpc_norepl         Linked  /mnt/grid/zador/hpc_norepl
+# zador_hpc_home           Linked  /mnt/grid/zador/hpc/home
+# zador_hpc_norepl_data    Linked  /mnt/grid/zador/hpc_norepl/data
+# zador_nlsas              Linked  /mnt/grid/zador/nlsas
+# zador_nlsas_norepl       Linked  /mnt/grid/zador/nlsas_norepl
+# zador_nlsas_norepl_data  Linked  /mnt/grid/zador/nlsas_norepl/data
+# zador_nlsas_data         Linked  /mnt/grid/zador/nlsas/data
 #
 #   
 #
@@ -19,8 +26,8 @@ FSLIST = ['gillis_hpc_data',
           'gillis_hpc_home', 
           'gillis_nlsas_data', 
           'gillis_nlsas_norepl_data',
-          #'zador_hpc_data',
-          #'zador_hpc_home', 
+          'zador_hpc_data',
+          'zador_hpc_home', 
           'zador_nlsas_data', 
           'zador_nlsas_norepl_data'
           ]

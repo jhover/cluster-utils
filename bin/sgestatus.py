@@ -74,10 +74,9 @@ def get_qhost():
     bam03                   lx-amd64       96    2   48   96  0.19  754.4G  144.1G   12.0G  789.4M
 
 
-    '''
+
 
     cmd = ['qhost']
-
     try:
         cp = run_command_shell(cmd)
         
@@ -91,6 +90,12 @@ def get_qhost():
     for x in output:
         s += str(x)
     print(f'qhost output: \n{s}')
+'''
+    
+    o = check_output('qhost', encoding='UTF-8')
+    lines = o.splitlines()
+    return lines
+    
 
 
 def get_qstat_all():
@@ -103,10 +108,7 @@ def get_qstat_all():
    8970983 0.52274 spacexr    nbhandar     r     10/23/2024 10:07:55 gpu.q@bamgpu04                                                   16        
    8924425 0.52155 ana20k-thr benjami      r     09/30/2024 16:08:11 comp.q@bam17                                                     48 3
     
-    '''
-
     cmd = ['qstat', '-u', "'*'"]
-
     try:
         cp = run_command_shell(cmd)
         
@@ -114,12 +116,16 @@ def get_qstat_all():
         logging.error(f'problem with command {cmd}')
         logging.error(traceback.format_exc(None))
         raise    
-
     output = [line for line in cp.stdout.splitlines() if line != '']
     s = ''
     for x in output:
         s += str(x)
     print(f'qstat output: \n{s}')
+    '''
+
+    o = check_output("qstat -u '*' ", encoding='UTF-8')
+    lines = o.splitlines()
+    return lines
 
 
 if __name__ == '__main__':
@@ -159,6 +165,6 @@ if __name__ == '__main__':
     cdict = format_config(cp)
     logging.debug(f'Running with config. {args.config}: {cdict}')
 
-    get_qstat_all()
-    get_qhost()
+    print( get_qstat_all() )
+    print(  get_qhost() )
           

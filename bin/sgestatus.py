@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+','#!/usr/bin/env python
 #
 # Make human-interpretable table of node resources/occupancy. 
 #
@@ -73,30 +73,18 @@ def get_qhost():
     bam02                   lx-amd64       96    2   48   96  0.01  754.4G   23.1G   12.0G     0.0
     bam03                   lx-amd64       96    2   48   96  0.19  754.4G  144.1G   12.0G  789.4M
 
-
-
-
-    cmd = ['qhost']
-    try:
-        cp = run_command_shell(cmd)
-        
-    except NonZeroReturnException as nzre:
-        logging.error(f'problem with command {cmd}')
-        logging.error(traceback.format_exc(None))
-        raise    
-
-    output = [line for line in cp.stdout.splitlines() if line != '']
-    s = ''
-    for x in output:
-        s += str(x)
-    print(f'qhost output: \n{s}')
 '''
+    QHOST_COLS=['hostname','arch','ncpu','nsoc','ncor','nthr','nload','memtot','memuse','swapto','swapus']
     cmd = ['qhost']    
     o = subprocess.check_output(cmd, encoding='UTF-8')
     lines = o.splitlines()
-    return lines
+    lines = lines[2:]
+    lol = []
+    for line in lines:
+        lol.append(line.split())
+    hdf = pd.DataFrame(lol, columns=QHOST_COLS )
+    return hdf
     
-
 
 def get_qstat_all():
     '''
@@ -122,10 +110,18 @@ def get_qstat_all():
         s += str(x)
     print(f'qstat output: \n{s}')
     '''
-    cmd = ['qstat', '-u', "'*'"]
+    QSTAT_A_COLS = ['jobid','prior','name','user','state','ss_date','ss_time','queue','slots','taskid']
+    
+    cmd = ['qstat', '-u', '*', '-s','r']
     o = subprocess.check_output(cmd, encoding='UTF-8')
     lines = o.splitlines()
-    return lines
+    lines = lines[2:]
+    lol = []
+    for line in lines:
+        lol.append(line.split())
+    qdf = pd.DataFrame(lol)
+    qdf.columns = QSTAT_A_COLS
+    return qdf
 
 
 if __name__ == '__main__':
@@ -164,7 +160,9 @@ if __name__ == '__main__':
        
     cdict = format_config(cp)
     logging.debug(f'Running with config. {args.config}: {cdict}')
+    qdf = get_qhost()
+    sdf = get_qstat_all()
 
-    print(  get_qhost() )
-    print(  get_qstat_all() )
+    print( qdf )
+    print( sdf )
           

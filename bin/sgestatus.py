@@ -92,7 +92,7 @@ def get_qhost():
     print(f'qhost output: \n{s}')
 '''
     
-    o = check_output('qhost', encoding='UTF-8')
+    o = subprocess.check_output('qhost', encoding='UTF-8')
     lines = o.splitlines()
     return lines
     
@@ -123,7 +123,7 @@ def get_qstat_all():
     print(f'qstat output: \n{s}')
     '''
 
-    o = check_output("qstat -u '*' ", encoding='UTF-8')
+    o = subprocess.check_output("qstat -u '*' ", encoding='UTF-8')
     lines = o.splitlines()
     return lines
 

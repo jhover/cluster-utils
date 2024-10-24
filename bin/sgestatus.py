@@ -87,7 +87,9 @@ def get_qhost():
         raise    
 
     output = [line for line in cp.stdout.splitlines() if line != '']
-    print(f'qhost output: \n{output}')
+    s = ''
+    s = [ s + x for x in output ]
+    print(f'qhost output: \n{s}')
 
 
 def get_qstat_all():
@@ -113,7 +115,9 @@ def get_qstat_all():
         raise    
 
     output = [line for line in cp.stdout.splitlines() if line != '']
-    print(f'qstat output: \n{output}')
+    s = ''
+    s = [ s + x for x in output ]
+    print(f'qstat output: \n{s}')
 
 
 if __name__ == '__main__':

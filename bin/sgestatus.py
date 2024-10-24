@@ -91,8 +91,8 @@ def get_qhost():
         s += str(x)
     print(f'qhost output: \n{s}')
 '''
-    
-    o = subprocess.check_output('qhost', encoding='UTF-8')
+    cmd = ['qhost']    
+    o = subprocess.check_output(cmd, encoding='UTF-8')
     lines = o.splitlines()
     return lines
     
@@ -122,8 +122,8 @@ def get_qstat_all():
         s += str(x)
     print(f'qstat output: \n{s}')
     '''
-
-    o = subprocess.check_output("qstat -u '*' ", encoding='UTF-8')
+    cmd = ['qstat', '-u', "'*'"]
+    o = subprocess.check_output(cmd, encoding='UTF-8')
     lines = o.splitlines()
     return lines
 
@@ -165,6 +165,6 @@ if __name__ == '__main__':
     cdict = format_config(cp)
     logging.debug(f'Running with config. {args.config}: {cdict}')
 
-    print( get_qstat_all() )
     print(  get_qhost() )
+    print(  get_qstat_all() )
           

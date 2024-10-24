@@ -88,7 +88,8 @@ def get_qhost():
 
     output = [line for line in cp.stdout.splitlines() if line != '']
     s = ''
-    s = [ s + str(x) for x in output ]
+    for x in output:
+        s += x
     print(f'qhost output: \n{s}')
 
 
@@ -116,7 +117,8 @@ def get_qstat_all():
 
     output = [line for line in cp.stdout.splitlines() if line != '']
     s = ''
-    s = [ s + str(x) for x in output ]
+    for x in output:
+        s += x
     print(f'qstat output: \n{s}')
 
 

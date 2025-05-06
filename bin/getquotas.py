@@ -12,7 +12,6 @@
 # zador_nlsas_data         Linked  /mnt/grid/zador/nlsas/data
 #
 #   
-#
 
 
 
@@ -22,16 +21,11 @@ import logging
 import subprocess
 
 
-FSLIST = ['gillis_hpc_data',
-          'gillis_hpc_home', 
-          'gillis_nlsas_data', 
-          'gillis_nlsas_norepl_data',
-          'zador_hpc_home',
-          'zador_hpc_norepl_data', 
-          'zador_nlsas_data', 
-          'zador_nlsas_norepl_data',
-          'mbseq_data',
-          'mbseq_data_norepl'
+FSLIST = [  'mbseq_data_norepl',
+            'mbseq_data',
+            'mbseq_data_norepl',
+            'zador_data_norepl',
+            'zador_hpc_home'
           ]
 QUOTACMD = '/usr/lpp/mmfs/bin/mmlsquota'
 

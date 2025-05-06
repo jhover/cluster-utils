@@ -91,14 +91,23 @@ if __name__ == "__main__":
     if args.verbose:
         logging.getLogger().setLevel(logging.INFO)
 
+        
+    errmsgs = []
+
     for fs in FSLIST:
-        cmd = [QUOTACMD, '-j', f'{fs}', 'grid']
-        (err, out, rc) = run_command_shell(cmd)
-        (kb, quota, limit) = parse_mmls_output(out) 
-        mb = kb / 1024
-        gb =int( mb / 1024)
-        qmb = quota / 1024
-        qgb = int(qmb / 1024)
-        free = qgb - gb
-        print(f'{fs}\tused={gb} GB\tquota={qgb} GB\tfree={free} GB') 
+        try:
+            cmd = [QUOTACMD, '-j', f'{fs}', 'grid']
+            (err, out, rc) = run_command_shell(cmd)
+            (kb, quota, limit) = parse_mmls_output(out) 
+            mb = kb / 1024
+            gb =int( mb / 1024)
+            qmb = quota / 1024
+            qgb = int(qmb / 1024)
+            free = qgb - gb
+            print(f'{fs}\tused={gb} GB\tquota={qgb} GB\tfree={free} GB')
+        except Exception as e:
+            errmsgs.append( f"failed: '{cmd}'")
+    
+    for m in errmsgs:
+        print(m) 
 

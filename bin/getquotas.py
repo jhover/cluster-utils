@@ -23,7 +23,6 @@ import subprocess
 
 FSLIST = [  'mbseq_data_norepl',
             'zador_data_norepl',
-            'zador_hpc_home'
           ]
 QUOTACMD = '/usr/lpp/mmfs/bin/mmlsquota'
 

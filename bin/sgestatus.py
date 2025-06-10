@@ -166,7 +166,7 @@ if __name__ == '__main__':
     # Option 2: Using options.display
     pd.options.display.max_rows = None
     pd.options.display.max_columns = None
-
+    pd.options.display.width = 256
     print( qdf )
     print( sdf )
           

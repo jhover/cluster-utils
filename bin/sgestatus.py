@@ -25,8 +25,7 @@ class NonZeroReturnException(Exception):
     """
     Thrown when a command has non-zero return code. 
     """
-    
-
+  
 def run_command_shell(cmd):
     """
     maybe subprocess.run(" ".join(cmd), shell=True)
@@ -58,7 +57,6 @@ def run_command_shell(cmd):
         logging.warn(f'got rc={cp.returncode} command= {cmdstr}')
         raise NonZeroReturnException(f'For cmd {cmdstr}')
     return cp
-
 
 
 def get_qhost():
@@ -110,7 +108,7 @@ def get_qstat_all():
         s += str(x)
     print(f'qstat output: \n{s}')
     '''
-    QSTAT_A_COLS = ['jobid','prior','name','user','state','ss_date','ss_time','queue','slots','taskid']
+    QSTAT_A_COLS = ['job_number','prior','name','user','state','ss_date','ss_time','queue','slots','taskid']
     
     cmd = ['qstat', '-u', '*', '-s','r']
     o = subprocess.check_output(cmd, encoding='UTF-8')
@@ -122,6 +120,105 @@ def get_qstat_all():
     qdf = pd.DataFrame(lol)
     qdf.columns = QSTAT_A_COLS
     return qdf
+
+
+def get_jstat_all():
+    '''
+    qstat -j * -s r   (all jobs currently running)
+
+    '==============================================================',    
+    'job_number:                 11034153',
+    'submission_time:            03/15/2025 21:26:16.516',
+    'owner:                      wangm',
+    'department:                 cryocourse',
+    'hard_resource_list:         gpu=1,m_mem_free=4G']
+    'parallel environment:       threads range: 2',
+    
+    
+    '''
+    #cmd = ['qstat', '-j', '*', '-s','-r']
+    cmd = ['qjstat', '-j', '*', '-s','-r']
+    o = subprocess.check_output(cmd, encoding='UTF-8')
+    lines = o.splitlines()
+    logging.debug(f'got {len(lines)} lines...')
+    joblist = []
+    jobdict = None
+    for line in lines:
+        if line == '==============================================================':
+            if jobdict is None:
+                pass
+            else:
+                logging.debug(f"adding job {jobdict['job_number']} to joblist len={len(joblist)}")
+                joblist.append(jobdict)
+            jobdict = {}
+        elif line.startswith('job_number:' ):
+            flist = line.split()
+            jobdict['job_number'] = flist[1]
+        elif line.startswith('submission_time:'):
+            flist = line.split()
+            jobdict['ss_date'] = flist[1]
+            jobdict['ss_time'] = flist[2]    
+        elif line.startswith('owner'):
+            flist = line.split()
+            jobdict['owner'] = flist[1]
+        elif line.startswith('hard_resource_list:'):
+            flist = line.split()
+            rlist = flist[1]
+            # default no GPU
+            jobdict['gpu'] = '0'
+            jobdict['m_mem_free'] = 1
+            for kv in rlist.split(','):
+                (k,v) = kv.split('=')
+                if k == 'm_mem_free':
+                    if v.endswith('G'):
+                        try:
+                            v = int( v[:-1] )
+                        except ValueError:
+                            logging.warning(f'attempting round() on m_mem_free={v}')
+                            try:
+                                v = round( float( v[:-1] ) )
+                            except ValueError:
+                                logging.warning(f'serious problem parsing m_mem_free={v}')
+                    jobdict['m_mem_free'] = int(v)
+                elif kv == 'gpu=1':
+                    (k,v) = kv.split('=')
+                    jobdict['gpu'] = int( v)
+        elif line.startswith('parallel environment:'):
+            jobdict['threads'] = 1
+            jobdict['mpi'] = 0
+            flist = line.split()
+            # parallel environment:       threads range: 8
+            # parallel environment:       mpi range: 32
+            if flist[2] ==  'threads':
+                jobdict['threads'] = int( flist[4])
+            elif flist[2] == 'mpi':
+                jobdict['mpi'] = int( flist[4] )
+                
+    jdf = pd.DataFrame(joblist)
+
+    # create total_mem column. 
+    jdf['total_mem'] = jdf['m_mem_free'] * jdf['threads']
+    
+    # fix NaNs
+    jdf.fillna( {'threads' : 1, 'mpi' : 0 }, inplace=True)
+    
+    # re-order columns
+    jdf = jdf[ ['job_number','owner', 'threads', 'mpi', 'm_mem_free', 'gpu', 'ss_date', 'ss_time', ] ]
+    
+
+    return jdf            
+    #return joblist
+
+
+def get_jobtable():
+    sdf = get_qstat_all()
+    jdf = get_jstat_all()    
+    jtdf = jdf.join(sdf.set_index('job_number'), on='job_number', how='left', rsuffix='_r')
+    
+
+
+
+    
 
 
 if __name__ == '__main__':
@@ -162,11 +259,14 @@ if __name__ == '__main__':
     logging.debug(f'Running with config. {args.config}: {cdict}')
     qdf = get_qhost()
     sdf = get_qstat_all()
+    jdf = get_jstat_all()
 
     # Option 2: Using options.display
     pd.options.display.max_rows = None
     pd.options.display.max_columns = None
     pd.options.display.width = 256
-    print( qdf )
-    print( sdf )
-          
+
+    logging.debug( f'\n{qdf}' )
+    logging.debug( f'\n{sdf}')
+    logging.debug( f'\n{jdf}' )
+              
